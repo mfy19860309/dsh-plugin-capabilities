@@ -13,6 +13,7 @@ import { deleteSkill, setSkillPolicy, updateSkillFile, userSkillsDir, validateSk
 import { findRootByUrl, loadState, pluginStateDir, removeSkillRoot, type SkillRootEntry } from './state.ts'
 import { removeTree } from './rmtree.ts'
 import { checkMcpRow, listMcp, listMcpScoped, mcpRowToInput, mcpScopeDir, removeMcp, setMcpDisabled, setOAuthHeader, upsertMcp, validateMcpInput, type McpInput, type McpScope } from './mcp.ts'
+import { listToolsMcp } from './mcpTools.ts'
 import { authorize as runOAuthAuthorize, baseUrlFromMcpUrl, clearOAuthDocument, createFileCredentialStore, portForServer, readOAuthDoc, refreshOAuth } from './oauth.ts'
 import type { CapabilitiesHost, HostSkill } from './types.ts'
 
@@ -77,7 +78,7 @@ export function mountCapabilitiesRoutes(host: CapabilitiesHost, config: Capabili
   const disposers = [
     host.webServer.register({
       kind: 'exact',
-      path: '/dsh-plugin-capabilities/skills',
+      path: '/dsh-oauth-plugin-capabilities/skills',
       handler: async (request: IncomingMessage, response: ServerResponse) => {
         if (request.method !== 'GET') {
           response.writeHead(405, { allow: 'GET' })
@@ -95,7 +96,7 @@ export function mountCapabilitiesRoutes(host: CapabilitiesHost, config: Capabili
 
     host.webServer.register({
       kind: 'exact',
-      path: '/dsh-plugin-capabilities/skill',
+      path: '/dsh-oauth-plugin-capabilities/skill',
       handler: async (request: IncomingMessage, response: ServerResponse) => {
         if (request.method !== 'GET') {
           response.writeHead(405, { allow: 'GET' })
@@ -119,7 +120,7 @@ export function mountCapabilitiesRoutes(host: CapabilitiesHost, config: Capabili
 
     host.webServer.register({
       kind: 'exact',
-      path: '/dsh-plugin-capabilities/skill/save',
+      path: '/dsh-oauth-plugin-capabilities/skill/save',
       handler: async (request: IncomingMessage, response: ServerResponse) => {
         if (request.method !== 'POST') {
           response.writeHead(405, { allow: 'POST' })
@@ -170,7 +171,7 @@ export function mountCapabilitiesRoutes(host: CapabilitiesHost, config: Capabili
 
     host.webServer.register({
       kind: 'exact',
-      path: '/dsh-plugin-capabilities/skill/delete',
+      path: '/dsh-oauth-plugin-capabilities/skill/delete',
       handler: async (request: IncomingMessage, response: ServerResponse) => {
         if (request.method !== 'POST') {
           response.writeHead(405, { allow: 'POST' })
@@ -194,7 +195,7 @@ export function mountCapabilitiesRoutes(host: CapabilitiesHost, config: Capabili
 
     host.webServer.register({
       kind: 'exact',
-      path: '/dsh-plugin-capabilities/skill/policy',
+      path: '/dsh-oauth-plugin-capabilities/skill/policy',
       handler: async (request: IncomingMessage, response: ServerResponse) => {
         if (request.method !== 'POST') {
           response.writeHead(405, { allow: 'POST' })
@@ -230,7 +231,7 @@ export function mountCapabilitiesRoutes(host: CapabilitiesHost, config: Capabili
 
     host.webServer.register({
       kind: 'exact',
-      path: '/dsh-plugin-capabilities/open',
+      path: '/dsh-oauth-plugin-capabilities/open',
       handler: async (request: IncomingMessage, response: ServerResponse) => {
         if (request.method !== 'POST') {
           response.writeHead(405, { allow: 'POST' })
@@ -298,7 +299,7 @@ export function mountCapabilitiesRoutes(host: CapabilitiesHost, config: Capabili
 
     host.webServer.register({
       kind: 'exact',
-      path: '/dsh-plugin-capabilities/roots',
+      path: '/dsh-oauth-plugin-capabilities/roots',
       handler: async (request: IncomingMessage, response: ServerResponse) => {
         if (request.method !== 'GET') {
           response.writeHead(405, { allow: 'GET' })
@@ -311,7 +312,7 @@ export function mountCapabilitiesRoutes(host: CapabilitiesHost, config: Capabili
 
     host.webServer.register({
       kind: 'exact',
-      path: '/dsh-plugin-capabilities/roots/add',
+      path: '/dsh-oauth-plugin-capabilities/roots/add',
       handler: async (request: IncomingMessage, response: ServerResponse) => {
         if (request.method !== 'POST') {
           response.writeHead(405, { allow: 'POST' })
@@ -349,7 +350,7 @@ export function mountCapabilitiesRoutes(host: CapabilitiesHost, config: Capabili
 
     host.webServer.register({
       kind: 'exact',
-      path: '/dsh-plugin-capabilities/roots/remove',
+      path: '/dsh-oauth-plugin-capabilities/roots/remove',
       handler: async (request: IncomingMessage, response: ServerResponse) => {
         if (request.method !== 'POST') {
           response.writeHead(405, { allow: 'POST' })
@@ -386,7 +387,7 @@ export function mountCapabilitiesRoutes(host: CapabilitiesHost, config: Capabili
 
     host.webServer.register({
       kind: 'exact',
-      path: '/dsh-plugin-capabilities/market/skills',
+      path: '/dsh-oauth-plugin-capabilities/market/skills',
       handler: async (request: IncomingMessage, response: ServerResponse) => {
         if (request.method !== 'GET') {
           response.writeHead(405, { allow: 'GET' })
@@ -407,7 +408,7 @@ export function mountCapabilitiesRoutes(host: CapabilitiesHost, config: Capabili
 
     host.webServer.register({
       kind: 'exact',
-      path: '/dsh-plugin-capabilities/market/mcp',
+      path: '/dsh-oauth-plugin-capabilities/market/mcp',
       handler: async (request: IncomingMessage, response: ServerResponse) => {
         if (request.method !== 'GET') {
           response.writeHead(405, { allow: 'GET' })
@@ -429,7 +430,7 @@ export function mountCapabilitiesRoutes(host: CapabilitiesHost, config: Capabili
 
     host.webServer.register({
       kind: 'exact',
-      path: '/dsh-plugin-capabilities/market/skills/install',
+      path: '/dsh-oauth-plugin-capabilities/market/skills/install',
       handler: async (request: IncomingMessage, response: ServerResponse) => {
         if (request.method !== 'POST') {
           response.writeHead(405, { allow: 'POST' })
@@ -457,7 +458,7 @@ export function mountCapabilitiesRoutes(host: CapabilitiesHost, config: Capabili
 
     host.webServer.register({
       kind: 'exact',
-      path: '/dsh-plugin-capabilities/market/mcp/install',
+      path: '/dsh-oauth-plugin-capabilities/market/mcp/install',
       handler: async (request: IncomingMessage, response: ServerResponse) => {
         if (request.method !== 'POST') {
           response.writeHead(405, { allow: 'POST' })
@@ -508,7 +509,7 @@ export function mountCapabilitiesRoutes(host: CapabilitiesHost, config: Capabili
 
     host.webServer.register({
       kind: 'exact',
-      path: '/dsh-plugin-capabilities/mcp',
+      path: '/dsh-oauth-plugin-capabilities/mcp',
       handler: async (request: IncomingMessage, response: ServerResponse) => {
         if (request.method !== 'GET') {
           response.writeHead(405, { allow: 'GET' })
@@ -531,7 +532,7 @@ export function mountCapabilitiesRoutes(host: CapabilitiesHost, config: Capabili
 
     host.webServer.register({
       kind: 'exact',
-      path: '/dsh-plugin-capabilities/mcp/save',
+      path: '/dsh-oauth-plugin-capabilities/mcp/save',
       handler: async (request: IncomingMessage, response: ServerResponse) => {
         if (request.method !== 'POST') {
           response.writeHead(405, { allow: 'POST' })
@@ -568,7 +569,7 @@ export function mountCapabilitiesRoutes(host: CapabilitiesHost, config: Capabili
 
     host.webServer.register({
       kind: 'exact',
-      path: '/dsh-plugin-capabilities/mcp/toggle',
+      path: '/dsh-oauth-plugin-capabilities/mcp/toggle',
       handler: async (request: IncomingMessage, response: ServerResponse) => {
         if (request.method !== 'POST') {
           response.writeHead(405, { allow: 'POST' })
@@ -596,7 +597,7 @@ export function mountCapabilitiesRoutes(host: CapabilitiesHost, config: Capabili
 
     host.webServer.register({
       kind: 'exact',
-      path: '/dsh-plugin-capabilities/mcp/remove',
+      path: '/dsh-oauth-plugin-capabilities/mcp/remove',
       handler: async (request: IncomingMessage, response: ServerResponse) => {
         if (request.method !== 'POST') {
           response.writeHead(405, { allow: 'POST' })
@@ -624,7 +625,7 @@ export function mountCapabilitiesRoutes(host: CapabilitiesHost, config: Capabili
 
     host.webServer.register({
       kind: 'exact',
-      path: '/dsh-plugin-capabilities/mcp/check',
+      path: '/dsh-oauth-plugin-capabilities/mcp/check',
       handler: async (request: IncomingMessage, response: ServerResponse) => {
         if (request.method !== 'POST') {
           response.writeHead(405, { allow: 'POST' })
@@ -658,7 +659,50 @@ export function mountCapabilitiesRoutes(host: CapabilitiesHost, config: Capabili
 
     host.webServer.register({
       kind: 'exact',
-      path: '/dsh-plugin-capabilities/mcp/authorize',
+      path: '/dsh-oauth-plugin-capabilities/mcp/tools',
+      handler: async (request: IncomingMessage, response: ServerResponse) => {
+        if (request.method !== 'POST') {
+          response.writeHead(405, { allow: 'POST' })
+          response.end()
+          return
+        }
+        if (!sameOrigin(request)) {
+          sendJson(response, 403, { error: 'untrusted origin' })
+          return
+        }
+        try {
+          const body = (await readJsonBody(request)) as { id?: unknown; scope?: unknown }
+          if (typeof body.id !== 'string') {
+            sendJson(response, 400, { error: 'id is required' })
+            return
+          }
+          const dir = mcpScopeDir(readScope(body.scope), config.profileDirPath, config.dshHomePath)
+          const row = listMcp(dir).find(item => item.id === body.id)
+          if (row === undefined) {
+            sendJson(response, 404, { error: 'server row not found' })
+            return
+          }
+          // OAuth 行的 Authorization 头由插件托管（令牌存凭证库），listMcp 不回显它；
+          // tools 探测需要鉴权时按 serverName 从凭证库取回令牌补回。
+          let probeRow = row
+          if (row.oauth === true && typeof row.serverName === 'string') {
+            const doc = await readOAuthDoc(oauthStore, row.serverName)
+            if (doc?.access_token !== undefined) {
+              probeRow = { ...row, headers: { ...(row.headers ?? {}), Authorization: `Bearer ${doc.access_token}` } }
+            }
+          }
+          // Connect to the server and list its tools; the probe is bounded and
+          // read-only (initialize → notifications/initialized → tools/list).
+          sendJson(response, 200, await listToolsMcp(probeRow))
+        } catch (error) {
+          sendJson(response, 500, { error: error instanceof Error ? error.message : String(error) })
+        }
+      },
+    }),
+
+    host.webServer.register({
+      kind: 'exact',
+      path: '/dsh-oauth-plugin-capabilities/mcp/authorize',
       handler: async (request: IncomingMessage, response: ServerResponse) => {
         if (request.method !== 'POST') {
           response.writeHead(405, { allow: 'POST' })
@@ -728,7 +772,7 @@ export function mountCapabilitiesRoutes(host: CapabilitiesHost, config: Capabili
 
     host.webServer.register({
       kind: 'exact',
-      path: '/dsh-plugin-capabilities/mcp/revoke',
+      path: '/dsh-oauth-plugin-capabilities/mcp/revoke',
       handler: async (request: IncomingMessage, response: ServerResponse) => {
         if (request.method !== 'POST') {
           response.writeHead(405, { allow: 'POST' })
@@ -763,7 +807,7 @@ export function mountCapabilitiesRoutes(host: CapabilitiesHost, config: Capabili
 
     host.webServer.register({
       kind: 'exact',
-      path: '/dsh-plugin-capabilities/mcp/copy',
+      path: '/dsh-oauth-plugin-capabilities/mcp/copy',
       handler: async (request: IncomingMessage, response: ServerResponse) => {
         if (request.method !== 'POST') {
           response.writeHead(405, { allow: 'POST' })
@@ -809,7 +853,7 @@ export function mountCapabilitiesRoutes(host: CapabilitiesHost, config: Capabili
     }),
     host.webServer.register({
       kind: 'exact',
-      path: '/dsh-plugin-capabilities/import/scan',
+      path: '/dsh-oauth-plugin-capabilities/import/scan',
       handler: async (request: IncomingMessage, response: ServerResponse) => {
         if (request.method !== 'GET') {
           response.writeHead(405, { allow: 'GET' })
@@ -831,7 +875,7 @@ export function mountCapabilitiesRoutes(host: CapabilitiesHost, config: Capabili
 
     host.webServer.register({
       kind: 'exact',
-      path: '/dsh-plugin-capabilities/import/apply',
+      path: '/dsh-oauth-plugin-capabilities/import/apply',
       handler: async (request: IncomingMessage, response: ServerResponse) => {
         if (request.method !== 'POST') {
           response.writeHead(405, { allow: 'POST' })
@@ -882,7 +926,7 @@ export function mountCapabilitiesRoutes(host: CapabilitiesHost, config: Capabili
 
     host.webServer.register({
       kind: 'exact',
-      path: '/dsh-plugin-capabilities/restart',
+      path: '/dsh-oauth-plugin-capabilities/restart',
       handler: (request: IncomingMessage, response: ServerResponse) => {
         if (request.method !== 'POST') {
           response.writeHead(405, { allow: 'POST' })

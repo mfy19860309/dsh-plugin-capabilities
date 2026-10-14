@@ -12,7 +12,7 @@
  *
  * 端点约定（与参考项目一致）：
  *   `${baseUrl}/oauth/authorize`、`/oauth/token`、`/oauth/register`。
- * @module dsh-plugin-capabilities/oauth
+ * @module dsh-oauth-plugin-capabilities/oauth
  */
 
 import { randomBytes, createHash } from 'node:crypto'
@@ -180,13 +180,13 @@ async function ensureListener(
 
       listeners.set(serverName, entry)
       if (candidate !== 0 && candidate !== port) {
-        log?.(`dsh-plugin-capabilities: '${serverName}' 回调端口 ${candidate} 不可用，改用 ${port}`)
+        log?.(`dsh-oauth-plugin-capabilities: '${serverName}' 回调端口 ${candidate} 不可用，改用 ${port}`)
       }
       return { url, wait: () => waitForCode(entry), close: () => closeEntry(serverName) }
     } catch (error) {
       const reason = (error as { code?: unknown })?.code ?? (error as { message?: unknown })?.message ?? 'bind failed'
       if (candidate !== 0) {
-        log?.(`dsh-plugin-capabilities: '${serverName}' 回调端口 ${candidate} 绑定失败：${reason}，尝试下一个`)
+        log?.(`dsh-oauth-plugin-capabilities: '${serverName}' 回调端口 ${candidate} 绑定失败：${reason}，尝试下一个`)
       }
     }
   }
@@ -327,7 +327,7 @@ async function httpJson(url: string, json: unknown, timeoutMs: number): Promise<
 
 /** 动态客户端注册（RFC 7591），同时发送 snake_case 与 camelCase 字段兼容新旧版。 */
 async function registerClient(options: { registerUrl: string; redirectUri: string; clientName?: string }): Promise<string> {
-  const { registerUrl, redirectUri, clientName = 'dsh-plugin-capabilities' } = options
+  const { registerUrl, redirectUri, clientName = 'dsh-oauth-plugin-capabilities' } = options
   const resp = await httpJson(
     registerUrl,
     {
@@ -444,7 +444,7 @@ export async function authorize(options: {
       code_challenge_method: 'S256',
     }).toString()
 
-  log?.(`dsh-plugin-capabilities: authorize '${serverName}' -> ${url}`)
+  log?.(`dsh-oauth-plugin-capabilities: authorize '${serverName}' -> ${url}`)
 
   const open = openBrowser ?? defaultOpenBrowser
   await open(url)
@@ -454,13 +454,13 @@ export async function authorize(options: {
     code = await bound.wait()
   } catch (error) {
     bound.close()
-    log?.(`dsh-plugin-capabilities: 等待授权回调失败：${(error as Error)?.message ?? error}`)
+    log?.(`dsh-oauth-plugin-capabilities: 等待授权回调失败：${(error as Error)?.message ?? error}`)
     throw error
   }
-  log?.('dsh-plugin-capabilities: 收到授权回调，正在换取访问令牌')
+  log?.('dsh-oauth-plugin-capabilities: 收到授权回调，正在换取访问令牌')
 
   const tokenData = await exchangeCode({ tokenUrl, code, redirectUri, clientId, codeVerifier })
-  log?.('dsh-plugin-capabilities: 授权成功，已持久化访问令牌')
+  log?.('dsh-oauth-plugin-capabilities: 授权成功，已持久化访问令牌')
   const doc: OAuthDoc = {
     ...existing,
     client_id: clientId,
@@ -528,7 +528,7 @@ export async function getValidToken(options: {
       try {
         return (await refreshOAuth(serverName, baseUrl, store, log)).access_token
       } catch (error) {
-        log?.(`dsh-plugin-capabilities: '${serverName}' 刷新失败，转入重新授权：${(error as Error)?.message ?? error}`)
+        log?.(`dsh-oauth-plugin-capabilities: '${serverName}' 刷新失败，转入重新授权：${(error as Error)?.message ?? error}`)
       }
     }
   }

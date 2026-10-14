@@ -12,8 +12,8 @@ describe('state round-trip', () => {
   it('returns empty for missing and corrupt files', () => {
     expect(loadState(join(root, 'missing'))).toEqual({ skillRoots: [] })
     const corrupt = join(root, 'corrupt')
-    mkdirSync(join(corrupt, 'dsh-plugin-capabilities'), { recursive: true })
-    writeFileSync(join(corrupt, 'dsh-plugin-capabilities', 'state.json'), '{oops')
+    mkdirSync(join(corrupt, 'dsh-oauth-plugin-capabilities'), { recursive: true })
+    writeFileSync(join(corrupt, 'dsh-oauth-plugin-capabilities', 'state.json'), '{oops')
     expect(loadState(corrupt)).toEqual({ skillRoots: [] })
   })
 
@@ -64,6 +64,6 @@ describe('removeSkillRoot with link material', () => {
     expect(existsSync(material)).toBe(false)
     expect(existsSync(join(source, 'SKILL.md'))).toBe(true)
     // State file persisted without the entry.
-    expect(readFileSync(join(home, 'dsh-plugin-capabilities', 'state.json'), 'utf8')).not.toContain('linked-source')
+    expect(readFileSync(join(home, 'dsh-oauth-plugin-capabilities', 'state.json'), 'utf8')).not.toContain('linked-source')
   })
 })

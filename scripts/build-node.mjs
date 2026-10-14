@@ -30,4 +30,4 @@ await build({
   logLevel: 'info',
 })
 
-console.log('[dsh-plugin-capabilities] node half written to lib/index.js')
+console.log('[dsh-oauth-plugin-capabilities] node half written to lib/index.js')

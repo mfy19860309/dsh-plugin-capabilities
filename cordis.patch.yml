@@ -1,7 +1,7 @@
-# dsh-plugin-capabilities bundle patch: insert the capabilities manager into
-# a profile's layer stack. The node half registers /dsh-plugin-capabilities/*
+# dsh-oauth-plugin-capabilities bundle patch: insert the capabilities manager into
+# a profile's layer stack. The node half registers /dsh-oauth-plugin-capabilities/*
 # routes on the web server; the client half contributes the "技能/Skills" and
 # "MCP" tabs into Settings → Plugins. Both halves share this one row:
 - insert:
-    - id: dsh-plugin-capabilities
-      name: 'dsh-plugin-capabilities'
+    - id: dsh-oauth-plugin-capabilities
+      name: 'dsh-oauth-plugin-capabilities'

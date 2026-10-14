@@ -68,7 +68,7 @@ export interface MarketIndex {
 
 /** Remote source of truth, one file per kind under the plugin repo. */
 export function marketIndexUrl(kind: MarketKind): string {
-  return `https://raw.githubusercontent.com/qinyre/dsh-plugin-capabilities/main/market/${kind}.json`
+  return `https://raw.githubusercontent.com/mfy19860309/dsh-plugin-capabilities/main/market/${kind}.json`
 }
 
 /** The snapshot shipped inside the package (src/../market in tests, lib/../market installed). */

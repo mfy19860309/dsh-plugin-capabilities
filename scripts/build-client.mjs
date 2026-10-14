@@ -10,9 +10,10 @@
 import { build } from 'esbuild'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
+import { readFileSync } from 'node:fs'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
-const id = 'dsh-plugin-capabilities'
+const id = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')).name
 
 // Mirror the host's platform module table (packages/client/web/src/platform.ts
 // + the runtime store exemption). Anything else under @deepseek-ai/* that the
@@ -52,4 +53,4 @@ await build({
   logLevel: 'info',
 })
 
-console.log(`[dsh-plugin-capabilities] client bundle written to lib/client.js (${id})`)
+console.log(`[${id}] client bundle written to lib/client.js`)

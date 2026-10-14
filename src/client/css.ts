@@ -143,6 +143,18 @@ export const CSS = `
 @media(max-width:560px){.dpc-skillList{grid-template-columns:minmax(0,1fr)}}
 /* OAuth status line on a card and the editor's oauth toggle. */
 .dpc-oauthOk{margin:0;font-size:12px;line-height:1.6;color:var(--dsw-alias-state-success-primary)}
+/* "View tools" affordance on an MCP card — opens the tools popup. */
+.dpc-cardToolsLink{display:inline-flex;align-items:center;gap:5px;align-self:flex-start;border:0;padding:2px 7px;border-radius:6px;background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-state-business-primary);font:inherit;font-size:11px;line-height:16px;cursor:pointer}
+.dpc-cardToolsLink:hover{background:color-mix(in srgb,var(--dsw-alias-state-business-primary) 14%,transparent)}
+.dpc-cardToolsLink:focus-visible{outline:2px solid var(--dsw-alias-state-business-primary);outline-offset:1px}
+/* Tools popup: one row per tool, name + optional title + description. */
+.dpc-toolsBody{display:flex;flex-direction:column;gap:10px}
+.dpc-toolList{display:flex;flex-direction:column;gap:8px;margin:0;padding:0;list-style:none}
+.dpc-tool{border:1px solid var(--dsw-alias-border-l2);border-radius:8px;padding:9px 12px;background:var(--dsw-alias-bg-layer-3)}
+.dpc-toolHead{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.dpc-toolName{font-family:var(--ds-font-family-code);font-size:12px;line-height:18px;color:var(--dsw-alias-label-primary);background:var(--dsw-alias-bg-layer-1);border-radius:4px;padding:1px 6px}
+.dpc-toolTitle{font-size:12px;line-height:18px;color:var(--dsw-alias-label-secondary)}
+.dpc-toolDesc{margin:4px 0 0;font-size:12px;line-height:18px;color:var(--dsw-alias-label-secondary)}
 .dpc-oauthToggle{display:flex;flex-direction:row;align-items:center;gap:8px;flex-wrap:wrap}
 .dpc-oauthToggle>span:first-child{flex:none}
 .dpc-oauthToggle input{width:auto;height:auto}

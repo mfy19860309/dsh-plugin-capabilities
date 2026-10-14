@@ -1,4 +1,4 @@
-/** dsh-plugin-capabilities host entry: mount the manager's HTTP routes once
+/** dsh-oauth-plugin-capabilities host entry: mount the manager's HTTP routes once
  * the profile composes both the web server and the skill registry, and mount
  * a host-plane filesystem skill provider so the Settings page sees a live
  * catalog (the web composition deliberately leaves the host row to presets).
@@ -16,7 +16,7 @@ import { mountCapabilitiesRoutes } from './routes.ts'
 import { loadState } from './state.ts'
 import type { CapabilitiesHost } from './types.ts'
 
-export const name = 'dsh-plugin-capabilities'
+export const name = 'dsh-oauth-plugin-capabilities'
 
 /**
  * The package's own vendored skills (`skills/` at the package root — resolves
@@ -114,9 +114,9 @@ export function apply(ctx: Context, config?: Config): void {
           dshHomePath: dshHomeDir(),
           remountProvider,
         }),
-        'dsh-plugin-capabilities: http routes',
+        'dsh-oauth-plugin-capabilities: http routes',
       )
       return disposer
-    }, 'dsh-plugin-capabilities: skill provider')
+    }, 'dsh-oauth-plugin-capabilities: skill provider')
   })
 }

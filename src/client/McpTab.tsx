@@ -46,6 +46,8 @@ export interface McpInjected {
   authorize(id: string, scope: McpScope, force?: boolean): Promise<{ ok: boolean; authorized: boolean; error?: string }>
   /** 解除该行的 OAuth 授权（清空令牌并移除 Bearer 头）。 */
   revoke(id: string, scope: McpScope): Promise<{ ok: boolean }>
+  /** 连接该 MCP 服务器并列出其全部工具（read-only 探测）。 */
+  tools(id: string, scope: McpScope): Promise<{ ok: boolean; tools?: Array<{ name: string; title?: string; description?: string }>; error?: string }>
   restart(): Promise<void>
   desktop: boolean
 }
@@ -253,6 +255,10 @@ export function McpTab(props: { t: Translate; injected: McpInjected }): ReactEle
   const [importScope, setImportScope] = useState<McpScope>('profile')
   /** 正在走 OAuth 流程的卡片 key 集合（`${scope}/${id}`）。 */
   const [authorizing, setAuthorizing] = useState<Set<string>>(() => new Set())
+  /** 工具弹窗：被点击的卡片行；null 表示关闭。`toolsData` 是已拉取的工具列表。 */
+  const [toolsRow, setToolsRow] = useState<McpRow | null>(null)
+  const [toolsData, setToolsData] = useState<{ ok: boolean; tools?: Array<{ name: string; title?: string; description?: string }>; error?: string } | null>(null)
+  const [toolsBusy, setToolsBusy] = useState(false)
 
   const openImport = async (): Promise<void> => {
     setImportOpen(true)
@@ -440,6 +446,24 @@ export function McpTab(props: { t: Translate; injected: McpInjected }): ReactEle
     }
   }
 
+  /** 点击卡片：连接该 MCP 服务器并列出其全部工具，弹窗展示。 */
+  const openTools = (row: McpRow): void => {
+    setToolsRow(row)
+    setToolsData(null)
+    setToolsBusy(true)
+    void injected.tools(row.id, row.scope).then(
+      (body) => setToolsData(body),
+      (error: Error) => setToolsData({ ok: false, error: String(error.message ?? error) }),
+    ).finally(() => setToolsBusy(false))
+  }
+
+  /** 关闭工具弹窗。 */
+  const closeTools = (): void => {
+    setToolsRow(null)
+    setToolsData(null)
+    setToolsBusy(false)
+  }
+
   /** Duplicate the row into the other patch layer (ids dedupe server-side). */
   const doCopy = async (row: McpRow): Promise<void> => {
     setBusy(true)
@@ -581,7 +605,7 @@ export function McpTab(props: { t: Translate; injected: McpInjected }): ReactEle
       {servers !== null && servers.length > 0 && (
         <ul className="dpc-cards">
           {servers.map((row) => (
-            <li className="dpc-card" key={`${row.scope}/${row.id}`}>
+            <li className="dpc-card" key={`${row.scope}/${row.id}`} onClick={() => openTools(row)} role="button" tabIndex={0} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openTools(row) } }}>
               <div className="dpc-cardTop">
                 <strong className="dpc-cardTitle" title={row.id}>{row.serverName}</strong>
                 <span className="dpc-tag" data-kind={row.scope === 'global' ? 'source' : undefined}>{row.scope === 'global' ? t('scopeGlobal') : t('scopeProfile')}</span>
@@ -591,6 +615,9 @@ export function McpTab(props: { t: Translate; injected: McpInjected }): ReactEle
               <p className="dpc-cardDesc">
                 {row.transport === 'stdio' ? `${row.command ?? ''} ${(row.args ?? []).join(' ')}` : row.url ?? ''}
               </p>
+              <button type="button" className="dpc-cardToolsLink" onClick={(event) => { event.stopPropagation(); openTools(row) }} title={t('viewTools')}>
+                <IconApi size={12} aria-hidden="true" /> {t('viewTools')}
+              </button>
               {row.shadowed === true && <p className="dpc-formError">{t('shadowedByGlobal')}</p>}
               {(() => {
                 const check = checks[`${row.scope}/${row.id}`]
@@ -608,7 +635,7 @@ export function McpTab(props: { t: Translate; injected: McpInjected }): ReactEle
                   {row.oauthConfigured === true ? `✓ ${t('authorized')}` : t('oauthNotConfigured')}
                 </p>
               )}
-              <div className="dpc-cardActions">
+              <div className="dpc-cardActions" onClick={(event) => event.stopPropagation()}>
                 <Button variant="ghost" size="sm" disabled={busy} onClick={() => void doCheck(row)}>{t('checkLabel')}</Button>
                 <Button variant="ghost" size="sm" disabled={busy} title={t('copyToOther')} onClick={() => void doCopy(row)}>{t('copyAction')}</Button>
                 <Button variant="ghost" size="sm" disabled={busy} onClick={() => void doToggle(row)}>{row.disabled ? t('enableAction') : t('disableAction')}</Button>
@@ -896,6 +923,42 @@ export function McpTab(props: { t: Translate; injected: McpInjected }): ReactEle
             </Button>
           </div>
         </div>
+      </Modal>
+
+      <Modal
+        open={toolsRow !== null}
+        onClose={closeTools}
+        title={toolsRow !== undefined && toolsRow !== null ? `${toolsRow.serverName} · ${t('toolsTitle')}` : t('toolsTitle')}
+        description={toolsRow !== undefined && toolsRow !== null ? (toolsRow.transport === 'stdio' ? `${toolsRow.command ?? ''} ${(toolsRow.args ?? []).join(' ')}` : toolsRow.url ?? '') : undefined}
+        className="dpc-modalWide"
+        contentClassName="dpc-modalScroll"
+      >
+        {toolsRow !== null && (
+          <div className="dpc-toolsBody">
+            {toolsBusy && <p className="dpc-empty">{t('toolsLoading')}</p>}
+            {!toolsBusy && toolsData !== null && !toolsData.ok && (
+              <p className="dpc-formError">{t('toolsError')}{toolsData.error !== undefined ? `：${toolsData.error}` : ''}</p>
+            )}
+            {!toolsBusy && toolsData !== null && toolsData.ok && (toolsData.tools ?? []).length === 0 && (
+              <p className="dpc-empty">{t('toolsEmpty')}</p>
+            )}
+            {!toolsBusy && toolsData !== null && toolsData.ok && (toolsData.tools ?? []).length > 0 && (
+              <ul className="dpc-toolList">
+                {toolsData.tools?.map((tool) => (
+                  <li className="dpc-tool" key={tool.name}>
+                    <div className="dpc-toolHead">
+                      <code className="dpc-toolName">{tool.name}</code>
+                      {tool.title !== undefined && tool.title !== '' && <span className="dpc-toolTitle">{tool.title}</span>}
+                    </div>
+                    {tool.description !== undefined && tool.description !== '' && (
+                      <p className="dpc-toolDesc">{tool.description}</p>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
       </Modal>
     </div>
   )

@@ -1,4 +1,4 @@
-/** dsh-plugin-capabilities client entry: contributes the top-level
+/** dsh-oauth-plugin-capabilities client entry: contributes the top-level
  * “技能与 MCP” section into Settings (beside 通用设置/模型, with Skills, MCP,
  * and 市场 as internal tabs). Calls the host routes with fetch. */
 
@@ -47,7 +47,7 @@ async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
 const post = (path: string, body: unknown): Promise<unknown> =>
   fetchJson(path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
 
-export const name = 'dsh-plugin-capabilities'
+export const name = 'dsh-oauth-plugin-capabilities'
 export const inject = ['slots', 'locale']
 
 export interface SkillBody { content: string }
@@ -71,57 +71,59 @@ export type OpenTarget =
   | { target: 'root'; id: string }
 
 export function apply(ctx: CapabilitiesClientContext): void {
-  ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'dsh-plugin-capabilities: dictionaries')
+  ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'dsh-oauth-plugin-capabilities: dictionaries')
   const t = ctx.locale.bind(NS)
 
   const skillsInjected: SkillsInjected = {
-    list: () => fetchJson<{ skills: SkillRowView[] }>('/dsh-plugin-capabilities/skills'),
-    get: (name: string) => fetchJson<SkillBody>(`/dsh-plugin-capabilities/skill?name=${encodeURIComponent(name)}`),
-    save: (input: unknown) => post('/dsh-plugin-capabilities/skill/save', input) as Promise<{ ok: boolean }>,
-    remove: (name: string) => post('/dsh-plugin-capabilities/skill/delete', { name }) as Promise<{ ok: boolean }>,
+    list: () => fetchJson<{ skills: SkillRowView[] }>('/dsh-oauth-plugin-capabilities/skills'),
+    get: (name: string) => fetchJson<SkillBody>(`/dsh-oauth-plugin-capabilities/skill?name=${encodeURIComponent(name)}`),
+    save: (input: unknown) => post('/dsh-oauth-plugin-capabilities/skill/save', input) as Promise<{ ok: boolean }>,
+    remove: (name: string) => post('/dsh-oauth-plugin-capabilities/skill/delete', { name }) as Promise<{ ok: boolean }>,
     policy: (name: string, enabled: boolean) =>
-      post('/dsh-plugin-capabilities/skill/policy', { name, enabled }) as Promise<{ ok: boolean }>,
-    open: (target: OpenTarget) => post('/dsh-plugin-capabilities/open', target) as Promise<{ ok: boolean }>,
-    roots: () => fetchJson<{ roots: RootRowView[] }>('/dsh-plugin-capabilities/roots'),
+      post('/dsh-oauth-plugin-capabilities/skill/policy', { name, enabled }) as Promise<{ ok: boolean }>,
+    open: (target: OpenTarget) => post('/dsh-oauth-plugin-capabilities/open', target) as Promise<{ ok: boolean }>,
+    roots: () => fetchJson<{ roots: RootRowView[] }>('/dsh-oauth-plugin-capabilities/roots'),
     addRoot: (input: { kind: 'local' | 'git'; path?: string; url?: string }) =>
-      post('/dsh-plugin-capabilities/roots/add', input) as Promise<{ ok: boolean; root: RootRowView }>,
-    removeRoot: (id: string) => post('/dsh-plugin-capabilities/roots/remove', { id }) as Promise<{ ok: boolean }>,
+      post('/dsh-oauth-plugin-capabilities/roots/add', input) as Promise<{ ok: boolean; root: RootRowView }>,
+    removeRoot: (id: string) => post('/dsh-oauth-plugin-capabilities/roots/remove', { id }) as Promise<{ ok: boolean }>,
   }
 
   const mcpInjected: McpInjected = {
-    list: () => fetchJson<{ servers: McpRow[]; globalError?: string }>('/dsh-plugin-capabilities/mcp'),
-    save: (input: unknown) => post('/dsh-plugin-capabilities/mcp/save', input) as Promise<{ ok: boolean; id: string }>,
+    list: () => fetchJson<{ servers: McpRow[]; globalError?: string }>('/dsh-oauth-plugin-capabilities/mcp'),
+    save: (input: unknown) => post('/dsh-oauth-plugin-capabilities/mcp/save', input) as Promise<{ ok: boolean; id: string }>,
     toggle: (id: string, disabled: boolean, scope: McpScope) =>
-      post('/dsh-plugin-capabilities/mcp/toggle', { id, disabled, scope }) as Promise<{ ok: boolean }>,
-    remove: (id: string, scope: McpScope) => post('/dsh-plugin-capabilities/mcp/remove', { id, scope }) as Promise<{ ok: boolean }>,
-    check: (id: string, scope: McpScope) => post('/dsh-plugin-capabilities/mcp/check', { id, scope }) as Promise<{ ok: boolean; detail?: string }>,
+      post('/dsh-oauth-plugin-capabilities/mcp/toggle', { id, disabled, scope }) as Promise<{ ok: boolean }>,
+    remove: (id: string, scope: McpScope) => post('/dsh-oauth-plugin-capabilities/mcp/remove', { id, scope }) as Promise<{ ok: boolean }>,
+    check: (id: string, scope: McpScope) => post('/dsh-oauth-plugin-capabilities/mcp/check', { id, scope }) as Promise<{ ok: boolean; detail?: string }>,
     copy: (id: string, scope: McpScope, toScope: McpScope) =>
-      post('/dsh-plugin-capabilities/mcp/copy', { id, scope, toScope }) as Promise<{ ok: boolean; id: string }>,
-    scanImport: () => fetchJson<{ servers: ImportedServerView[]; existing: string[] }>('/dsh-plugin-capabilities/import/scan'),
+      post('/dsh-oauth-plugin-capabilities/mcp/copy', { id, scope, toScope }) as Promise<{ ok: boolean; id: string }>,
+    scanImport: () => fetchJson<{ servers: ImportedServerView[]; existing: string[] }>('/dsh-oauth-plugin-capabilities/import/scan'),
     applyImport: (items: Array<{ agent: string; name: string }>, scope: McpScope) =>
-      post('/dsh-plugin-capabilities/import/apply', { items, scope }) as Promise<{ ok: boolean; results: Array<{ name: string; ok: boolean; error?: string }> }>,
+      post('/dsh-oauth-plugin-capabilities/import/apply', { items, scope }) as Promise<{ ok: boolean; results: Array<{ name: string; ok: boolean; error?: string }> }>,
     restart: async (): Promise<void> => {
       if (window.dshDesktop !== undefined) {
         window.dshDesktop.restartSidecar?.()
         return
       }
       // 独立 dsh web：自重启路由。连接在关停途中断开属预期，不算失败。
-      try { await post('/dsh-plugin-capabilities/restart', {}) } catch { /* dying mid-restart is expected */ }
+      try { await post('/dsh-oauth-plugin-capabilities/restart', {}) } catch { /* dying mid-restart is expected */ }
     },
     authorize: (id: string, scope: McpScope, force?: boolean) =>
-      post('/dsh-plugin-capabilities/mcp/authorize', { id, scope, ...(force === true ? { force: true } : {}) }) as Promise<{ ok: boolean; authorized: boolean; error?: string }>,
+      post('/dsh-oauth-plugin-capabilities/mcp/authorize', { id, scope, ...(force === true ? { force: true } : {}) }) as Promise<{ ok: boolean; authorized: boolean; error?: string }>,
     revoke: (id: string, scope: McpScope) =>
-      post('/dsh-plugin-capabilities/mcp/revoke', { id, scope }) as Promise<{ ok: boolean }>,
+      post('/dsh-oauth-plugin-capabilities/mcp/revoke', { id, scope }) as Promise<{ ok: boolean }>,
+    tools: (id: string, scope: McpScope) =>
+      post('/dsh-oauth-plugin-capabilities/mcp/tools', { id, scope }) as Promise<{ ok: boolean; tools?: Array<{ name: string; title?: string; description?: string }>; error?: string }>,
     desktop: window.dshDesktop !== undefined,
   }
 
   const marketInjected: MarketInjected = {
-    skillsIndex: () => fetchJson<{ source: 'remote' | 'bundled'; repos: Array<MarketRepoView & { installedId: string | null }> }>('/dsh-plugin-capabilities/market/skills'),
-    mcpIndex: () => fetchJson<{ source: 'remote' | 'bundled'; servers: Array<MarketServerView & { installed: boolean }> }>('/dsh-plugin-capabilities/market/mcp'),
+    skillsIndex: () => fetchJson<{ source: 'remote' | 'bundled'; repos: Array<MarketRepoView & { installedId: string | null }> }>('/dsh-oauth-plugin-capabilities/market/skills'),
+    mcpIndex: () => fetchJson<{ source: 'remote' | 'bundled'; servers: Array<MarketServerView & { installed: boolean }> }>('/dsh-oauth-plugin-capabilities/market/mcp'),
     installSkillRepo: (url: string) =>
-      post('/dsh-plugin-capabilities/market/skills/install', { url }) as Promise<{ ok: boolean; root: RootRowView }>,
+      post('/dsh-oauth-plugin-capabilities/market/skills/install', { url }) as Promise<{ ok: boolean; root: RootRowView }>,
     installMcp: (id: string, scope: McpScope) =>
-      post('/dsh-plugin-capabilities/market/mcp/install', { id, scope }) as Promise<{ ok: boolean; id: string }>,
+      post('/dsh-oauth-plugin-capabilities/market/mcp/install', { id, scope }) as Promise<{ ok: boolean; id: string }>,
     removeRoot: skillsInjected.removeRoot,
   }
 

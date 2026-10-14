@@ -1,6 +1,6 @@
-# dsh-plugin-capabilities
+# dsh-oauth-plugin-capabilities
 
-[![npm version](https://img.shields.io/npm/v/dsh-plugin-capabilities)](https://www.npmjs.com/package/dsh-plugin-capabilities)
+[![npm version](https://img.shields.io/npm/v/dsh-oauth-plugin-capabilities)](https://www.npmjs.com/package/dsh-oauth-plugin-capabilities)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 
 在 dsh 设置页管理技能与 MCP 服务器。设置里新增一级分区「技能与 MCP」（与「通用设置」「模型」并列），内含「技能」「MCP」「市场」三个标签页：技能目录、自定义技能仓库和两层（profile / 全局）MCP 服务器行都能在页面上直接维护，不必手工编辑 YAML；Claude Code、Codex、Cursor、Gemini CLI 等其他 agent 的技能与 MCP 配置也能一键纳入。在 `dsh web`（含桌面端内嵌的 Web 界面）中均可使用，新旧两代运行时（0.1.1 至 0.1.7-rc.2）均实测兼容。
@@ -34,19 +34,19 @@ MCP 变更需重启 dsh 生效，页头的「重启」按钮不必离开界面�
   <img src="docs/images/screenshot-market-mcp.png" width="49%" alt="「MCP 市场」">
 </p>
 
-「技能市场」是精选的技能仓库（Anthropic 官方技能集、Superpowers 工作流集等），点「安装」即走上文仓库的下载解包流程，装完立即出现在「技能」页；「MCP 市场」是精选服务器列表（filesystem、memory、git 及 context7 等常用第三方），点「添加」等价于手工添加一条服务器行，写入哪一层跟随列表上方的范围选择。条目都可点开看详情：技能仓库列出内含技能清单，MCP 服务器列出启动命令、环境变量与工具清单。列表来自[本仓库](https://github.com/qinyre/dsh-plugin-capabilities)的在线索引，离线时回退包内快照；已安装条目可直接卸载。
+「技能市场」是精选的技能仓库（Anthropic 官方技能集、Superpowers 工作流集等），点「安装」即走上文仓库的下载解包流程，装完立即出现在「技能」页；「MCP 市场」是精选服务器列表（filesystem、memory、git 及 context7 等常用第三方），点「添加」等价于手工添加一条服务器行，写入哪一层跟随列表上方的范围选择。条目都可点开看详情：技能仓库列出内含技能清单，MCP 服务器列出启动命令、环境变量与工具清单。列表来自[本仓库](https://github.com/mfy19860309/dsh-plugin-capabilities)的在线索引，离线时回退包内快照；已安装条目可直接卸载。
 
 ## 安装
 
 ```sh
-dsh plugin --profile web add dsh-plugin-capabilities
+dsh plugin --profile web add dsh-oauth-plugin-capabilities
 ```
 
-本地源码检出也可直接安装（`prepare` 自动构建）：`dsh plugin --profile web add file:/path/to/dsh-plugin-capabilities`。
+本地源码检出也可直接安装（`prepare` 自动构建）：`dsh plugin --profile web add file:/path/to/dsh-oauth-plugin-capabilities`。
 
 ## 工作原理
 
-服务端在 web 服务器上注册 `/dsh-plugin-capabilities/*` 路由，并在宿主平面挂载自己的 filesystem provider 子插件以获得实时技能目录——其他 agent 的目录与用户注册的仓库作为额外扫描根，随插件装卸，不动 preset 层语义。GitHub 仓库由内置纯 JS tar 读取器解包，全程不 spawn 子进程；写操作带同源栅栏与输入校验（技能名、serverName 语法、路径穿越拒绝）。官方桌面壳转发而来的请求没有 Origin 头，仅当回环 Host、回环连接对端、无代理痕迹且无跨站 Sec-Fetch-Site 标记时放行。
+服务端在 web 服务器上注册 `/dsh-oauth-plugin-capabilities/*` 路由，并在宿主平面挂载自己的 filesystem provider 子插件以获得实时技能目录——其他 agent 的目录与用户注册的仓库作为额外扫描根，随插件装卸，不动 preset 层语义。GitHub 仓库由内置纯 JS tar 读取器解包，全程不 spawn 子进程；写操作带同源栅栏与输入校验（技能名、serverName 语法、路径穿越拒绝）。官方桌面壳转发而来的请求没有 Origin 头，仅当回环 Host、回环连接对端、无代理痕迹且无跨站 Sec-Fetch-Site 标记时放行。
 
 ## 开发
 

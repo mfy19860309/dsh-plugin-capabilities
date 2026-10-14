@@ -49,7 +49,7 @@ describe('loadMarketIndex', () => {
       const parsed = JSON.parse(readFileSync(bundledMarketPath(kind), 'utf8')) as Record<string, unknown>
       expect(parsed.version).toBe(1)
       expect(Array.isArray(kind === 'skills' ? parsed.repos : parsed.servers)).toBe(true)
-      expect(marketIndexUrl(kind)).toContain(`https://raw.githubusercontent.com/qinyre/dsh-plugin-capabilities/main/market/${kind}.json`)
+      expect(marketIndexUrl(kind)).toContain(`https://raw.githubusercontent.com/mfy19860309/dsh-plugin-capabilities/main/market/${kind}.json`)
     }
   })
 

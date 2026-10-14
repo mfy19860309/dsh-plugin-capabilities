@@ -1,5 +1,5 @@
 /**
- * dsh-plugin-capabilities end-to-end smoke: real source dsh, temp DSH_HOME,
+ * dsh-oauth-plugin-capabilities end-to-end smoke: real source dsh, temp DSH_HOME,
  * install this package into the web profile, boot `dsh web`, then probe the
  * manager's routes, including a real skill write and MCP row write.
  *
@@ -23,7 +23,7 @@ const guard = existsSync(join(repoRoot, 'apps', 'cli', 'src', 'bin.ts'))
 const [nodeMajor, nodeMinor] = process.version.slice(1).split('.').map(Number)
 const nodeOk = (nodeMajor === 22 && nodeMinor >= 19) || nodeMajor >= 24
 
-const smokeRoot = mkdtempSync(join(tmpdir(), 'dsh-plugin-capabilities-smoke-'))
+const smokeRoot = mkdtempSync(join(tmpdir(), 'dsh-oauth-plugin-capabilities-smoke-'))
 const dshBin = join(repoRoot, 'apps', 'cli', 'src', 'bin.ts')
 
 /** Test env with a CLEAN PATH (vitest prepends ancestor .bin dirs). */
@@ -83,9 +83,9 @@ function bootWeb(dshHome: string): Promise<{ port: number }> {
   })
 }
 
-describe.skipIf(process.env.DSH_DESKTOP_PLUGIN_SMOKE !== '1' || !guard || !nodeOk)('dsh-plugin-capabilities smoke', () => {
+describe.skipIf(process.env.DSH_DESKTOP_PLUGIN_SMOKE !== '1' || !guard || !nodeOk)('dsh-oauth-plugin-capabilities smoke', () => {
   afterAll(() => {
-    if (smokeRoot.startsWith(tmpdir()) && smokeRoot.includes('dsh-plugin-capabilities-smoke-')) {
+    if (smokeRoot.startsWith(tmpdir()) && smokeRoot.includes('dsh-oauth-plugin-capabilities-smoke-')) {
       rmSync(smokeRoot, { recursive: true, force: true })
     }
   })
@@ -107,7 +107,7 @@ describe.skipIf(process.env.DSH_DESKTOP_PLUGIN_SMOKE !== '1' || !guard || !nodeO
 
     // 3. Skills list serves the catalog with the editable flag — including the
     // package's vendored skills, which arrive read-only from the custom root.
-    const skillsResponse = await fetch(`${base}/dsh-plugin-capabilities/skills`)
+    const skillsResponse = await fetch(`${base}/dsh-oauth-plugin-capabilities/skills`)
     expect(skillsResponse.status).toBe(200)
     const skillsBody = await skillsResponse.json() as { skills?: Array<{ name: string; source: string; editable: boolean }> }
     expect(Array.isArray(skillsBody.skills)).toBe(true)
@@ -119,7 +119,7 @@ describe.skipIf(process.env.DSH_DESKTOP_PLUGIN_SMOKE !== '1' || !guard || !nodeO
     }
 
     // 4. Write a user skill; the watched root picks it up into the catalog.
-    const save = await post('/dsh-plugin-capabilities/skill/save', {
+    const save = await post('/dsh-oauth-plugin-capabilities/skill/save', {
       name: 'smoke-skill',
       description: 'created by the capabilities smoke',
       modelInvocable: true,
@@ -130,26 +130,26 @@ describe.skipIf(process.env.DSH_DESKTOP_PLUGIN_SMOKE !== '1' || !guard || !nodeO
     const file = join(smokeRoot, 'skills', 'smoke-skill', 'SKILL.md')
     expect(existsSync(file)).toBe(true)
     expect(readFileSync(file, 'utf8')).toContain('name: smoke-skill')
-    const listed = await fetch(`${base}/dsh-plugin-capabilities/skills`).then(r => r.json()) as { skills: Array<{ name: string; editable: boolean }> }
+    const listed = await fetch(`${base}/dsh-oauth-plugin-capabilities/skills`).then(r => r.json()) as { skills: Array<{ name: string; editable: boolean }> }
     // Watcher invalidation is asynchronous; poll briefly for the new skill.
     const deadline = Date.now() + 15_000
     let seen = listed.skills.some(skill => skill.name === 'smoke-skill' && skill.editable)
     while (!seen && Date.now() < deadline) {
       await new Promise(resolve => setTimeout(resolve, 1000))
-      const again = await fetch(`${base}/dsh-plugin-capabilities/skills`).then(r => r.json()) as { skills: Array<{ name: string; editable: boolean }> }
+      const again = await fetch(`${base}/dsh-oauth-plugin-capabilities/skills`).then(r => r.json()) as { skills: Array<{ name: string; editable: boolean }> }
       seen = again.skills.some(skill => skill.name === 'smoke-skill' && skill.editable)
     }
     expect(seen).toBe(true)
 
     // 5. MCP row lands in the profile patch and lists back.
-    const mcpSave = await post('/dsh-plugin-capabilities/mcp/save', {
+    const mcpSave = await post('/dsh-oauth-plugin-capabilities/mcp/save', {
       id: '',
       serverName: 'smokeweb',
       transport: 'streamable-http',
       url: 'http://127.0.0.1:9/mcp',
     })
     expect(mcpSave.status).toBe(200)
-    const servers = await fetch(`${base}/dsh-plugin-capabilities/mcp`).then(r => r.json()) as { servers: Array<{ serverName: string }> }
+    const servers = await fetch(`${base}/dsh-oauth-plugin-capabilities/mcp`).then(r => r.json()) as { servers: Array<{ serverName: string }> }
     expect(servers.servers.some(row => row.serverName === 'smokeweb')).toBe(true)
     const patch = readFileSync(join(smokeRoot, 'profiles', 'web', 'cordis.patch.yml'), 'utf8')
     expect(patch).toContain('@deepseek-ai/dsh-mcp-client')
@@ -159,35 +159,35 @@ describe.skipIf(process.env.DSH_DESKTOP_PLUGIN_SMOKE !== '1' || !guard || !nodeO
     const repoDir = join(smokeRoot, 'my-repo')
     mkdirSync(join(repoDir, 'repo-skill'), { recursive: true })
     writeFileSync(join(repoDir, 'repo-skill', 'SKILL.md'), '---\nname: repo-skill\ndescription: from a local repo\nlicense: MIT\n---\n\nhi')
-    const addRoot = await post('/dsh-plugin-capabilities/roots/add', { kind: 'local', path: repoDir })
+    const addRoot = await post('/dsh-oauth-plugin-capabilities/roots/add', { kind: 'local', path: repoDir })
     expect(addRoot.status).toBe(200)
-    expect(readFileSync(join(smokeRoot, 'dsh-plugin-capabilities', 'state.json'), 'utf8')).toContain('my-repo') // roots recorded
+    expect(readFileSync(join(smokeRoot, 'dsh-oauth-plugin-capabilities', 'state.json'), 'utf8')).toContain('my-repo') // roots recorded
     let repoSeen = false
     for (let tick = 0; tick < 10 && !repoSeen; tick++) {
       await new Promise(resolve => setTimeout(resolve, 1000))
-      const again = await fetch(`${base}/dsh-plugin-capabilities/skills`).then(r => r.json()) as { skills: Array<{ name: string; source: string; policyEditable: boolean }> }
+      const again = await fetch(`${base}/dsh-oauth-plugin-capabilities/skills`).then(r => r.json()) as { skills: Array<{ name: string; source: string; policyEditable: boolean }> }
       repoSeen = again.skills.some(skill => skill.name === 'repo-skill' && skill.source === 'custom' && skill.policyEditable)
     }
     expect(repoSeen).toBe(true)
 
     // 7. Policy toggle flips the invocation flags through the watched file.
-    const policyOff = await post('/dsh-plugin-capabilities/skill/policy', { name: 'repo-skill', enabled: false })
+    const policyOff = await post('/dsh-oauth-plugin-capabilities/skill/policy', { name: 'repo-skill', enabled: false })
     expect(policyOff.status).toBe(200)
     expect(readFileSync(join(repoDir, 'repo-skill', 'SKILL.md'), 'utf8')).toContain('disable-model-invocation: true')
     let policySeen = false
     for (let tick = 0; tick < 10 && !policySeen; tick++) {
       await new Promise(resolve => setTimeout(resolve, 1000))
-      const again = await fetch(`${base}/dsh-plugin-capabilities/skills`).then(r => r.json()) as { skills: Array<{ name: string; invocation: { modelInvocable: boolean; userInvocable: boolean } }> }
+      const again = await fetch(`${base}/dsh-oauth-plugin-capabilities/skills`).then(r => r.json()) as { skills: Array<{ name: string; invocation: { modelInvocable: boolean; userInvocable: boolean } }> }
       const row = again.skills.find(skill => skill.name === 'repo-skill')
       policySeen = row !== undefined && !row.invocation.modelInvocable && !row.invocation.userInvocable
     }
     expect(policySeen).toBe(true)
-    const policyRestore = await post('/dsh-plugin-capabilities/skill/policy', { name: 'repo-skill', enabled: true })
+    const policyRestore = await post('/dsh-oauth-plugin-capabilities/skill/policy', { name: 'repo-skill', enabled: true })
     expect(policyRestore.status).toBe(200)
 
     // 7b. Custom-repo skills edit in place through the save route; the
     // frontmatter keys the editor does not own (license) survive the write.
-    const edit = await post('/dsh-plugin-capabilities/skill/save', {
+    const edit = await post('/dsh-oauth-plugin-capabilities/skill/save', {
       name: 'repo-skill',
       description: 'edited in place',
       modelInvocable: true,
@@ -202,24 +202,24 @@ describe.skipIf(process.env.DSH_DESKTOP_PLUGIN_SMOKE !== '1' || !guard || !nodeO
 
     // 8. Market: MCP index serves (remote or bundled fallback) and one-click
     // install writes a profile row.
-    const marketIndex = await fetch(`${base}/dsh-plugin-capabilities/market/mcp`)
+    const marketIndex = await fetch(`${base}/dsh-oauth-plugin-capabilities/market/mcp`)
     expect(marketIndex.status).toBe(200)
     const marketBody = await marketIndex.json() as { servers: Array<{ id: string; installed: boolean }> }
     const memory = marketBody.servers.find(server => server.id === 'memory')
     expect(memory).toBeDefined()
     if (memory !== undefined && !memory.installed) {
-      const install = await post('/dsh-plugin-capabilities/market/mcp/install', { id: 'memory' })
+      const install = await post('/dsh-oauth-plugin-capabilities/market/mcp/install', { id: 'memory' })
       expect(install.status).toBe(200)
-      const after = await fetch(`${base}/dsh-plugin-capabilities/mcp`).then(r => r.json()) as { servers: Array<{ serverName: string }> }
+      const after = await fetch(`${base}/dsh-oauth-plugin-capabilities/mcp`).then(r => r.json()) as { servers: Array<{ serverName: string }> }
       expect(after.servers.some(row => row.serverName === 'memory')).toBe(true)
     }
 
     // 9. Open-folder route resolves server-side and answers ok; the skills
     // home is created on demand, so a fresh DSH_HOME opens (not 422s).
-    const open = await post('/dsh-plugin-capabilities/open', { target: 'user-skills' })
+    const open = await post('/dsh-oauth-plugin-capabilities/open', { target: 'user-skills' })
     expect(open.status).toBe(200)
     expect(existsSync(join(smokeRoot, 'skills'))).toBe(true)
-    const openBad = await post('/dsh-plugin-capabilities/open', { target: 'root', id: 'does-not-exist' })
+    const openBad = await post('/dsh-oauth-plugin-capabilities/open', { target: 'root', id: 'does-not-exist' })
     expect(openBad.status).toBe(404)
   })
 })

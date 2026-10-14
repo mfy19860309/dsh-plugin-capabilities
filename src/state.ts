@@ -1,5 +1,5 @@
 /**
- * Plugin-owned state under `$DSH_HOME/dsh-plugin-capabilities/`: the custom
+ * Plugin-owned state under `$DSH_HOME/dsh-oauth-plugin-capabilities/`: the custom
  * skill repositories the user registered from the Settings page. Everything
  * the provider mounts live (local paths, extracted GitHub checkouts) hangs
  * off this file, so it stays small, JSON, and hand-recoverable.
@@ -38,7 +38,7 @@ export interface PluginState {
 
 /** The plugin's own directory under DSH_HOME (default `~/.dsh`). */
 export function pluginStateDir(dshHome: string | undefined = process.env.DSH_HOME): string {
-  return join(dshHome ?? join(homedir(), '.dsh'), 'dsh-plugin-capabilities')
+  return join(dshHome ?? join(homedir(), '.dsh'), 'dsh-oauth-plugin-capabilities')
 }
 
 function statePath(dshHome?: string): string {

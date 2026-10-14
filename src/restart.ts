@@ -53,7 +53,7 @@ export function scheduleRestart(launch: ReturnType<typeof dshLaunch>): {
   logErr: string
 } {
   const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
-  const logOut = `${tmpdir()}${tmpdir().endsWith('/') ? '' : '\\'}dsh-plugin-capabilities-restart-${stamp}.out.log`
+  const logOut = `${tmpdir()}${tmpdir().endsWith('/') ? '' : '\\'}dsh-oauth-plugin-capabilities-restart-${stamp}.out.log`
   const logErr = logOut.replace('.out.log', '.err.log')
   const child = spawn(launch.file, launch.args, {
     cwd: launch.cwd,

@@ -115,7 +115,7 @@ describe('addLocalRepo', () => {
     expect(entry.kind).toBe('local')
     expect(entry.roots).toEqual([source])
     expect(loadState(home).skillRoots).toHaveLength(1)
-    expect(existsSync(join(home, 'dsh-plugin-capabilities', 'state.json'))).toBe(true)
+    expect(existsSync(join(home, 'dsh-oauth-plugin-capabilities', 'state.json'))).toBe(true)
   })
 
   it('wraps a single-skill folder in a junction material dir', async () => {

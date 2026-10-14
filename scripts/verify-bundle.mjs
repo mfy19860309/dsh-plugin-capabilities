@@ -11,9 +11,10 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const bundlePath = join(root, 'lib', 'client.js')
 const bundle = readFileSync(bundlePath, 'utf8')
 
+const pluginId = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')).name
 const failures = []
-if (!bundle.includes('window.__ModuleLoader__.load({ id: "dsh-plugin-capabilities"')) {
-  failures.push('bundle does not start with the loader registration for dsh-plugin-capabilities')
+if (!bundle.includes(`window.__ModuleLoader__.load({ id: ${JSON.stringify(pluginId)}`)) {
+  failures.push(`bundle does not start with the loader registration for ${pluginId}`)
 }
 for (const module of ['react', '@deepseek-ai/dsh-client-ui-primitives', '@deepseek-ai/dsh-client-ui-slots', '@deepseek-ai/dsh-client-ui-locale', '@deepseek-ai/cordis']) {
   // Externals appear as require("...") calls, never inlined. A platform
@@ -27,4 +28,4 @@ if (failures.length > 0) {
   for (const failure of failures) console.error(`✗ ${failure}`)
   process.exit(1)
 }
-console.log('[dsh-plugin-capabilities] client bundle artifact verified')
+console.log(`[${pluginId}] client bundle artifact verified`)

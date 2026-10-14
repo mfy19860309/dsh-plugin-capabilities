@@ -1,6 +1,6 @@
 {
-  "name": "dsh-plugin-capabilities",
-  "version": "0.3.14",
+  "name": "dsh-oauth-plugin-capabilities",
+  "version": "20.0.2",
   "description": "Manage skills and MCP servers from the Web UI Settings. 在设置页管理 dsh 的技能与 MCP 服务器。",
   "type": "module",
   "main": "lib/index.js",
@@ -8,12 +8,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/qinyre/dsh-plugin-capabilities.git"
+    "url": "git+https://github.com/mfy19860309/dsh-plugin-capabilities.git"
   },
   "bugs": {
-    "url": "https://github.com/qinyre/dsh-plugin-capabilities/issues"
+    "url": "https://github.com/mfy19860309/dsh-plugin-capabilities/issues"
   },
-  "homepage": "https://github.com/qinyre/dsh-plugin-capabilities#readme",
+  "homepage": "https://github.com/mfy19860309/dsh-plugin-capabilities#readme",
   "keywords": [
     "deepseek",
     "harness",
